@@ -1,0 +1,31 @@
+# CloudTally configuration.
+# Precedence: CLOUDTALLY_* env vars > this file > built-in defaults.
+# A different file can be selected with CLOUDTALLY_CONFIG=/path/to/config.yaml
+
+mode: demo                # demo | live
+
+# Display/pricing currency: USD, EUR, GBP, AUD, CAD, SGD, JPY, INR, VND.
+currency: USD
+
+gcp:
+  # Leave empty to auto-discover every ACTIVE project your credentials can
+  # see (the `gcloud projects list` set), re-discovered hourly.
+  projects: []
+  #   - my-project-1
+  #   - my-project-2
+
+  # API key for the Cloud Billing Catalog API. Leave unset to use
+  # Application Default Credentials.
+  # api_key: "AIza..."
+
+  # Inventory every asset type, not just the ones CloudTally can price.
+  include_unpriced: false
+
+# Inventory poll interval in seconds. Default: 15 in demo mode, 300 in live.
+# poll_seconds: 300
+
+# How often to re-fetch the pricing catalog, in seconds.
+catalog_refresh_seconds: 86400
+
+# SQLite history location. Default: data/history-<mode>.db
+# db_path: data/history-live.db
