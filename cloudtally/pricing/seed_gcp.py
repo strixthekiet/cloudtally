@@ -38,6 +38,23 @@ BASE_PRICES: dict[str, tuple[float, str, str]] = {
     "t2d.ram": (0.003686, "gib_h", "T2D RAM"),
     "t2d.cpu.spot": (0.006656, "h", "T2D vCPU (Spot)"),
     "t2d.ram.spot": (0.000892, "gib_h", "T2D RAM (Spot)"),
+    # T2A (Ampere Altra, arm64) only has one shape, standard, at 4 GiB per vCPU. We don't have
+    # a second shape to split cpu vs ram directly, so we borrow T2D's cpu/ram split at the same
+    # 4 GiB/vCPU ratio and scale it to match T2A's published price ($0.154/h for
+    # t2a-standard-4, $0.077/h for t2a-standard-2, $0.0829/h spot for t2a-standard-4). The
+    # numbers below reproduce those prices exactly.
+    "t2a.cpu": (0.025063, "h", "T2A vCPU"),
+    "t2a.ram": (0.003359, "gib_h", "T2A RAM"),
+    "t2a.cpu.spot": (0.013492, "h", "T2A vCPU (Spot)"),
+    "t2a.ram.spot": (0.001808, "gib_h", "T2A RAM (Spot)"),
+    # C4A (Axion, arm64) has both standard (4 GiB/vCPU) and highcpu (2 GiB/vCPU) shapes, so we
+    # can solve for cpu and ram directly from two published prices: c4a-standard-4 is
+    # $0.1796/h on-demand and $0.0944/h spot, c4a-highcpu-4 is $0.1515/h on-demand and
+    # $0.0796/h spot. The numbers below reproduce both exactly.
+    "c4a.cpu": (0.03085, "h", "C4A vCPU"),
+    "c4a.ram": (0.0035125, "gib_h", "C4A RAM"),
+    "c4a.cpu.spot": (0.0162, "h", "C4A vCPU (Spot)"),
+    "c4a.ram.spot": (0.00185, "gib_h", "C4A RAM (Spot)"),
     # shared-core: flat per instance-hour
     "e2-micro.flat": (0.008376, "h", "e2-micro instance"),
     "e2-small.flat": (0.016751, "h", "e2-small instance"),

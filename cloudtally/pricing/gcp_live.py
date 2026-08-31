@@ -18,7 +18,7 @@ WANTED_SERVICES = {
     "Memorystore for Redis",
 }
 
-_FAMILIES = "E2|N1 Predefined|N2D|N2|C2D|C2|T2D"
+_FAMILIES = "E2|N1 Predefined|N2D|N2|C2D|C2|T2D|T2A|C4A"
 
 _MT_FLAT = {
     "E2 Micro Instance with burstable CPU": "e2-micro.flat",
