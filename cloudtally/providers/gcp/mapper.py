@@ -189,6 +189,21 @@ class GCPMapper:
             return make_cost(r, [], UNPRICED, "No SKU for Memorystore Redis")
         return make_cost(r, [c], EXACT)
 
+    def _memorystore(self, r: Resource) -> ResourceCost:
+        # Memorystore for Valkey bills a flat rate per node, not per GB. Total nodes = shards x
+        # (1 primary + replicas per shard).
+        node_type = str(r.attrs.get("node_type", "")).lower()
+        shard_count = int(r.attrs.get("shard_count", 1) or 1)
+        replica_count = int(r.attrs.get("replica_count", 0) or 0)
+        nodes = shard_count * (1 + replica_count)
+        c = _component(
+            self.catalog, r.region, f"memorystore.{node_type}.node",
+            f"{nodes:g}x {node_type} node", nodes, "node",
+        )
+        if c is None:
+            return make_cost(r, [], UNPRICED, f"No SKU for Memorystore node type '{node_type}'")
+        return make_cost(r, [c], EXACT)
+
     def _usage_based_serverless(self, r: Resource) -> ResourceCost:
         return make_cost(
             r, [], USAGE_BASED,
@@ -205,6 +220,7 @@ _HANDLERS = {
     "storage.googleapis.com/Bucket": GCPMapper._bucket,
     "sqladmin.googleapis.com/Instance": GCPMapper._cloudsql,
     "redis.googleapis.com/Instance": GCPMapper._redis,
+    "memorystore.googleapis.com/Instance": GCPMapper._memorystore,
     "run.googleapis.com/Service": GCPMapper._usage_based_serverless,
     "cloudfunctions.googleapis.com/Function": GCPMapper._usage_based_serverless,
 }

@@ -96,6 +96,18 @@ BASE_PRICES: dict[str, tuple[float, str, str]] = {
     # Memorystore for Redis, per provisioned GiB-hour
     "redis.basic.capacity": (0.049, "gib_h", "Memorystore Redis (Basic)"),
     "redis.standard_ha.capacity": (0.066, "gib_h", "Memorystore Redis (Standard HA)"),
+    # Memorystore for Valkey, flat rate per node per hour (not per GB). Pulled straight from
+    # the live Billing Catalog for us-central1, all 10 node types GCP offers as of 2026-08.
+    "memorystore.shared_core_nano.node": (0.0318, "h", "Memorystore Valkey Shared Core Nano node"),
+    "memorystore.custom_pico.node": (0.0308, "h", "Memorystore Valkey Custom Pico node"),
+    "memorystore.custom_micro.node": (0.0616, "h", "Memorystore Valkey Custom Micro node"),
+    "memorystore.custom_mini.node": (0.0924, "h", "Memorystore Valkey Custom Mini node"),
+    "memorystore.standard_small.node": (0.1425, "h", "Memorystore Valkey Standard Small node"),
+    "memorystore.highmem_medium.node": (0.1923, "h", "Memorystore Valkey Highmem Medium node"),
+    "memorystore.highcpu_medium.node": (0.4986, "h", "Memorystore Valkey Highcpu Medium node"),
+    "memorystore.standard_large.node": (0.5698, "h", "Memorystore Valkey Standard Large node"),
+    "memorystore.highmem_xlarge.node": (0.8581, "h", "Memorystore Valkey Highmem XLarge node"),
+    "memorystore.highmem_2xlarge.node": (1.6274, "h", "Memorystore Valkey Highmem 2XLarge node"),
     # load balancing
     "lb.forwarding-rule": (0.025, "h", "Forwarding rule"),
 }
