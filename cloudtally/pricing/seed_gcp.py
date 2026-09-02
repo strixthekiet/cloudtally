@@ -38,6 +38,23 @@ BASE_PRICES: dict[str, tuple[float, str, str]] = {
     "t2d.ram": (0.003686, "gib_h", "T2D RAM"),
     "t2d.cpu.spot": (0.006656, "h", "T2D vCPU (Spot)"),
     "t2d.ram.spot": (0.000892, "gib_h", "T2D RAM (Spot)"),
+    # T2A (Ampere Altra, arm64) only has one shape, standard, at 4 GiB per vCPU. We don't have
+    # a second shape to split cpu vs ram directly, so we borrow T2D's cpu/ram split at the same
+    # 4 GiB/vCPU ratio and scale it to match T2A's published price ($0.154/h for
+    # t2a-standard-4, $0.077/h for t2a-standard-2, $0.0829/h spot for t2a-standard-4). The
+    # numbers below reproduce those prices exactly.
+    "t2a.cpu": (0.025063, "h", "T2A vCPU"),
+    "t2a.ram": (0.003359, "gib_h", "T2A RAM"),
+    "t2a.cpu.spot": (0.013492, "h", "T2A vCPU (Spot)"),
+    "t2a.ram.spot": (0.001808, "gib_h", "T2A RAM (Spot)"),
+    # C4A (Axion, arm64) has both standard (4 GiB/vCPU) and highcpu (2 GiB/vCPU) shapes, so we
+    # can solve for cpu and ram directly from two published prices: c4a-standard-4 is
+    # $0.1796/h on-demand and $0.0944/h spot, c4a-highcpu-4 is $0.1515/h on-demand and
+    # $0.0796/h spot. The numbers below reproduce both exactly.
+    "c4a.cpu": (0.03085, "h", "C4A vCPU"),
+    "c4a.ram": (0.0035125, "gib_h", "C4A RAM"),
+    "c4a.cpu.spot": (0.0162, "h", "C4A vCPU (Spot)"),
+    "c4a.ram.spot": (0.00185, "gib_h", "C4A RAM (Spot)"),
     # shared-core: flat per instance-hour
     "e2-micro.flat": (0.008376, "h", "e2-micro instance"),
     "e2-small.flat": (0.016751, "h", "e2-small instance"),
@@ -79,6 +96,18 @@ BASE_PRICES: dict[str, tuple[float, str, str]] = {
     # Memorystore for Redis, per provisioned GiB-hour
     "redis.basic.capacity": (0.049, "gib_h", "Memorystore Redis (Basic)"),
     "redis.standard_ha.capacity": (0.066, "gib_h", "Memorystore Redis (Standard HA)"),
+    # Memorystore for Valkey, flat rate per node per hour (not per GB). Pulled straight from
+    # the live Billing Catalog for us-central1, all 10 node types GCP offers as of 2026-08.
+    "memorystore.shared_core_nano.node": (0.0318, "h", "Memorystore Valkey Shared Core Nano node"),
+    "memorystore.custom_pico.node": (0.0308, "h", "Memorystore Valkey Custom Pico node"),
+    "memorystore.custom_micro.node": (0.0616, "h", "Memorystore Valkey Custom Micro node"),
+    "memorystore.custom_mini.node": (0.0924, "h", "Memorystore Valkey Custom Mini node"),
+    "memorystore.standard_small.node": (0.1425, "h", "Memorystore Valkey Standard Small node"),
+    "memorystore.highmem_medium.node": (0.1923, "h", "Memorystore Valkey Highmem Medium node"),
+    "memorystore.highcpu_medium.node": (0.4986, "h", "Memorystore Valkey Highcpu Medium node"),
+    "memorystore.standard_large.node": (0.5698, "h", "Memorystore Valkey Standard Large node"),
+    "memorystore.highmem_xlarge.node": (0.8581, "h", "Memorystore Valkey Highmem XLarge node"),
+    "memorystore.highmem_2xlarge.node": (1.6274, "h", "Memorystore Valkey Highmem 2XLarge node"),
     # load balancing
     "lb.forwarding-rule": (0.025, "h", "Forwarding rule"),
 }

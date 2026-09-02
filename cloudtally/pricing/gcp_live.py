@@ -16,9 +16,26 @@ WANTED_SERVICES = {
     "Cloud SQL",
     "Kubernetes Engine",
     "Memorystore for Redis",
+    "Cloud Memorystore",
 }
 
-_FAMILIES = "E2|N1 Predefined|N2D|N2|C2D|C2|T2D"
+# Memorystore for Valkey node types, description prefix -> catalog key suffix. Checked against
+# the live Billing Catalog: these are the only 10 node types GCP bills as of 2026-08.
+_MEMORYSTORE_NODE_TYPES = {
+    "Shared Core Nano": "shared_core_nano",
+    "Custom Pico": "custom_pico",
+    "Custom Micro": "custom_micro",
+    "Custom Mini": "custom_mini",
+    "Standard Small": "standard_small",
+    "Highmem Medium": "highmem_medium",
+    "Highcpu Medium": "highcpu_medium",
+    "Standard Large": "standard_large",
+    "Highmem XLarge": "highmem_xlarge",
+    "Highmem 2xlarge": "highmem_2xlarge",
+}
+_MEMORYSTORE_NODE_PREFIX = "|".join(re.escape(k) for k in _MEMORYSTORE_NODE_TYPES)
+
+_FAMILIES = "E2|N1 Predefined|N2D|N2|C2D|C2|T2D|T2A|C4A"
 
 _MT_FLAT = {
     "E2 Micro Instance with burstable CPU": "e2-micro.flat",
@@ -114,6 +131,14 @@ def _sku_key(service: str, description: str, category: dict) -> str | None:
             return "redis.basic.capacity"
         if "Capacity Standard" in d:
             return "redis.standard_ha.capacity"
+        return None
+
+    if service == "Cloud Memorystore":
+        # Memorystore for Valkey node SKUs, e.g. "Standard Small Node Oregon". Flat rate per
+        # node per hour, not per GB, so this doesn't follow the cpu/ram split pattern above.
+        m = re.match(rf"^({_MEMORYSTORE_NODE_PREFIX}) Node ", d)
+        if m and usage == "OnDemand":
+            return f"memorystore.{_MEMORYSTORE_NODE_TYPES[m.group(1)]}.node"
         return None
 
     return None

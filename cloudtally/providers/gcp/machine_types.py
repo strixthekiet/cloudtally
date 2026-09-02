@@ -22,6 +22,10 @@ _RAM_PER_VCPU: dict[tuple[str, str], float] = {
     ("c2d", "highmem"): 8.0,
     ("c2d", "highcpu"): 2.0,
     ("t2d", "standard"): 4.0,
+    ("t2a", "standard"): 4.0,
+    ("c4a", "standard"): 4.0,
+    ("c4a", "highmem"): 8.0,
+    ("c4a", "highcpu"): 2.0,
 }
 
 # flat-priced per instance-hour
@@ -56,9 +60,11 @@ def parse_machine_type(machine_type: str) -> MachineShape | None:
     if len(parts) >= 4 and parts[1] == "custom":
         return MachineShape(parts[0], float(parts[2]), float(parts[3]) / 1024.0)
 
-    # <family>-<kind>-<vcpu>
-    if len(parts) == 3:
-        family, kind, n = parts
+    # <family>-<kind>-<vcpu>, optionally with a -lssd or -metal suffix (e.g.
+    # c4a-standard-4-lssd, c4a-highmem-96-metal). The suffix doesn't change the CPU/RAM rate,
+    # it just attaches local SSD, which we don't price separately here.
+    if len(parts) in (3, 4):
+        family, kind, n = parts[0], parts[1], parts[2]
         ram_per_vcpu = _RAM_PER_VCPU.get((family, kind))
         if ram_per_vcpu is None or not n.isdigit():
             return None

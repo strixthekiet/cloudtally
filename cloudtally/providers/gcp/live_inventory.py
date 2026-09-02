@@ -20,6 +20,7 @@ PRICED_ASSET_TYPES = [
     "storage.googleapis.com/Bucket",
     "sqladmin.googleapis.com/Instance",
     "redis.googleapis.com/Instance",
+    "memorystore.googleapis.com/Instance",
     "run.googleapis.com/Service",
     "cloudfunctions.googleapis.com/Function",
 ]
@@ -30,6 +31,7 @@ SERVICE_NAMES = {
     "storage.googleapis.com": "Cloud Storage",
     "sqladmin.googleapis.com": "Cloud SQL",
     "redis.googleapis.com": "Memorystore for Redis",
+    "memorystore.googleapis.com": "Memorystore for Valkey",
     "run.googleapis.com": "Cloud Run",
     "cloudfunctions.googleapis.com": "Cloud Functions",
     "bigquery.googleapis.com": "BigQuery",
@@ -112,6 +114,14 @@ def _normalize(asset: dict, project: str) -> Resource | None:
         region = parts[parts.index("locations") + 1] if "locations" in parts else "global"
         attrs = {"memory_gb": float(data.get("memorySizeGb", 0) or 0),
                  "tier": data.get("tier", "BASIC")}
+    elif asset_type == "memorystore.googleapis.com/Instance":
+        parts = full_name.split("/")
+        region = parts[parts.index("locations") + 1] if "locations" in parts else "global"
+        attrs = {
+            "node_type": data.get("nodeType", ""),
+            "shard_count": int(data.get("shardCount", 1) or 1),
+            "replica_count": int(data.get("replicaCount", 0) or 0),
+        }
     elif asset_type in ("run.googleapis.com/Service", "cloudfunctions.googleapis.com/Function"):
         parts = full_name.split("/")
         region = parts[parts.index("locations") + 1] if "locations" in parts else "global"
