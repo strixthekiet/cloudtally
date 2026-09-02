@@ -16,6 +16,7 @@ PRICED_ASSET_TYPES = [
     "compute.googleapis.com/Disk",
     "compute.googleapis.com/Address",
     "compute.googleapis.com/ForwardingRule",
+    "compute.googleapis.com/Router",
     "container.googleapis.com/Cluster",
     "storage.googleapis.com/Bucket",
     "sqladmin.googleapis.com/Instance",
@@ -90,6 +91,10 @@ def _normalize(asset: dict, project: str) -> Resource | None:
         attrs = {"address_type": data.get("addressType", "EXTERNAL")}
     elif asset_type == "compute.googleapis.com/ForwardingRule":
         region = _last(data.get("region", "")) or "global"
+    elif asset_type == "compute.googleapis.com/Router":
+        region = _last(data.get("region", "")) or "global"
+        # no nats[] means a BGP-only router, which is free; VM count isn't in inventory
+        attrs = {"nat_count": len(data.get("nats") or []), "nat_vm_count": None}
     elif asset_type == "container.googleapis.com/Cluster":
         location = data.get("location", "")
         is_regional = location.count("-") == 1  # "us-central1" vs "us-central1-a"

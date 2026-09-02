@@ -81,6 +81,9 @@ def _sku_key(service: str, description: str, category: dict) -> str | None:
             return "static-ip.unattached"
         if "Forwarding Rule Minimum Service Charge" in d:
             return "lb.forwarding-rule"
+        # only the per-VM uptime SKU is real; the capped rate stays seed-only
+        if "NAT Gateway" in d and "Uptime" in d:
+            return "nat.gateway.vm"
         return None
 
     if service == "Kubernetes Engine":

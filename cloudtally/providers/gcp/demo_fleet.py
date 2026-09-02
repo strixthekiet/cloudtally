@@ -47,6 +47,12 @@ def _bucket(project, name, region, storage_class, size_gb):
                 storage_class=storage_class, size_gb=size_gb)
 
 
+def _router(project, name, region, nat_count=0, nat_vm_count=None):
+    return _res(project, "Compute Engine", "compute.googleapis.com/Router",
+                name, region, None, "", None,
+                nat_count=nat_count, nat_vm_count=nat_vm_count)
+
+
 def _diurnal_extra_web(ts: float) -> int:
     """0..3 extra web instances, peaking mid-afternoon UTC."""
     h = (ts / 3600.0) % 24
@@ -118,6 +124,8 @@ def generate(ts: float) -> list[Resource]:
     out.append(_res(P_PROD, "Compute Engine", "compute.googleapis.com/ForwardingRule",
                     "api-https-fr", uc, None, "", None))
 
+    out.append(_router(P_PROD, "prod-nat-router", uc, nat_count=1, nat_vm_count=12))
+
     out.append(_bucket(P_PROD, "acme-prod-assets", uc, "STANDARD", 2300))
     out.append(_bucket(P_PROD, "acme-prod-backups", uc, "NEARLINE", 8200))
 
@@ -138,6 +146,7 @@ def generate(ts: float) -> list[Resource]:
     out.append(_bucket(P_STAGE, "acme-staging-assets", ew, "STANDARD", 140))
     out.append(_res(P_STAGE, "Compute Engine", "compute.googleapis.com/Address",
                     "staging-ip", ew, None, "RESERVED", None, address_type="EXTERNAL"))
+    out.append(_router(P_STAGE, "stage-bgp-router", ew))
     out.append(_res(P_STAGE, "Cloud Functions", "cloudfunctions.googleapis.com/Function",
                     "nightly-report", ew, None, "ACTIVE"))
 
@@ -150,6 +159,7 @@ def generate(ts: float) -> list[Resource]:
     if _ci_runner_up(ts):
         out.append(_instance(P_DATA, "ci-runner-ephemeral", ae, f"{ae}-b",
                              "e2-standard-8", labels={"tier": "ci"}))
+    out.append(_router(P_DATA, "data-nat-router", ae, nat_count=1, nat_vm_count=64))
     out.append(_bucket(P_DATA, "acme-data-lake", ae, "ARCHIVE", 21000))
     out.append(_bucket(P_DATA, "acme-data-warehouse-export", ae, "STANDARD", 3500))
     out.append(_res(P_DATA, "Cloud Functions", "cloudfunctions.googleapis.com/Function",
