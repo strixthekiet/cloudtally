@@ -66,6 +66,11 @@ BASE_PRICES: dict[str, tuple[float, str, str]] = {
     "pd-balanced.capacity": (0.100, "gib_mo", "Balanced PD capacity"),
     "pd-ssd.capacity": (0.170, "gib_mo", "SSD PD capacity"),
     "pd-extreme.capacity": (0.125, "gib_mo", "Extreme PD capacity"),
+    # snapshots, billed on stored (incremental, compressed) bytes
+    "snapshot.standard.capacity": (0.050, "gib_mo", "Standard snapshot storage"),
+    "snapshot.archive.capacity": (0.019, "gib_mo", "Archive snapshot storage"),
+    "snapshot.standard.multiregion": (0.065, "gib_mo", "Standard snapshot storage (multi-region)"),
+    "snapshot.archive.multiregion": (0.024, "gib_mo", "Archive snapshot storage (multi-region)"),
     # external IPv4
     "static-ip.attached": (0.005, "h", "External IPv4 (in use)"),
     "static-ip.unattached": (0.010, "h", "External IPv4 (reserved, unused)"),

@@ -93,6 +93,21 @@ class GCPMapper:
             return make_cost(r, [], UNPRICED, f"No SKU for disk type '{disk_type}'")
         return make_cost(r, [c], EXACT)
 
+    def _snapshot(self, r: Resource) -> ResourceCost:
+        kind = "archive" if str(r.attrs.get("snapshot_type", "")).upper() == "ARCHIVE" else "standard"
+        size = r.attrs.get("size_gb")
+        if size is None:
+            return make_cost(r, [], USAGE_BASED,
+                             "Snapshot stored bytes not in inventory; needs Cloud Monitoring")
+        # "us"/"eu"/"asia" are multi-region locations and bill above the regional rate
+        scope = "capacity" if "-" in r.region else "multiregion"
+        c = _component(self.catalog, r.region, f"snapshot.{kind}.{scope}",
+                       f"{float(size):g} GiB {kind} snapshot", float(size), "GiB")
+        if c is None:
+            return make_cost(r, [], UNPRICED, f"No SKU for {kind} snapshot in {r.region}")
+        return make_cost(r, [c], ESTIMATED,
+                         "Stored bytes shift as other snapshots in the chain are deleted")
+
     def _address(self, r: Resource) -> ResourceCost:
         if r.attrs.get("address_type") == "INTERNAL":
             return make_cost(r, [], EXACT, "Internal IP: free")
@@ -214,6 +229,7 @@ class GCPMapper:
 _HANDLERS = {
     "compute.googleapis.com/Instance": GCPMapper._instance,
     "compute.googleapis.com/Disk": GCPMapper._disk,
+    "compute.googleapis.com/Snapshot": GCPMapper._snapshot,
     "compute.googleapis.com/Address": GCPMapper._address,
     "compute.googleapis.com/ForwardingRule": GCPMapper._forwarding_rule,
     "container.googleapis.com/Cluster": GCPMapper._gke_cluster,

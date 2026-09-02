@@ -14,6 +14,7 @@ ASSET_BASE = "https://cloudasset.googleapis.com/v1"
 PRICED_ASSET_TYPES = [
     "compute.googleapis.com/Instance",
     "compute.googleapis.com/Disk",
+    "compute.googleapis.com/Snapshot",
     "compute.googleapis.com/Address",
     "compute.googleapis.com/ForwardingRule",
     "container.googleapis.com/Cluster",
@@ -85,6 +86,15 @@ def _normalize(asset: dict, project: str) -> Resource | None:
         region = _zone_region(zone) if zone else _last(data.get("region", "")) or "global"
         attrs = {"size_gb": float(data.get("sizeGb", 0) or 0),
                  "disk_type": _last(data.get("type", "pd-standard"))}
+    elif asset_type == "compute.googleapis.com/Snapshot":
+        # storageBytes is the billed quantity and arrives as a string-encoded int64
+        locs = data.get("storageLocations") or []
+        region = str(locs[0]).lower() if locs else "global"
+        stored = data.get("storageBytes")
+        attrs = {
+            "snapshot_type": data.get("snapshotType", "STANDARD"),
+            "size_gb": float(stored) / 1024 ** 3 if stored not in (None, "") else None,
+        }
     elif asset_type == "compute.googleapis.com/Address":
         region = _last(data.get("region", "")) or "global"
         attrs = {"address_type": data.get("addressType", "EXTERNAL")}

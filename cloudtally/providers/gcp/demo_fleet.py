@@ -41,6 +41,12 @@ def _disk(project, name, region, zone, size_gb, disk_type):
                 name, region, zone, "READY", None, size_gb=size_gb, disk_type=disk_type)
 
 
+def _snapshot(project, name, region, size_gb, snapshot_type="STANDARD"):
+    return _res(project, "Compute Engine", "compute.googleapis.com/Snapshot",
+                name, region, None, "READY", None,
+                size_gb=size_gb, snapshot_type=snapshot_type)
+
+
 def _bucket(project, name, region, storage_class, size_gb):
     return _res(project, "Cloud Storage", "storage.googleapis.com/Bucket",
                 name, region, None, "ACTIVE", None,
@@ -90,6 +96,10 @@ def generate(ts: float) -> list[Resource]:
     out.append(_instance(P_PROD, "ml-experiment-1", uc, f"{uc}-a", "n1-standard-8",
                          status="TERMINATED", labels={"tier": "ml"}))
     out.append(_disk(P_PROD, "ml-experiment-1-disk", uc, f"{uc}-a", 200, "pd-ssd"))
+
+    for i in (1, 2):
+        out.append(_snapshot(P_PROD, f"api-{i}-data-snap", uc, 118))
+    out.append(_snapshot(P_PROD, "orders-db-cold-snap", uc, 940, "ARCHIVE"))
 
     out.append(_res(P_PROD, "Kubernetes Engine", "container.googleapis.com/Cluster",
                     "prod-gke", uc, None, "RUNNING", None, location_type="regional"))

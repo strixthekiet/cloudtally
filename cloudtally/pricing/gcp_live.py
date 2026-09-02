@@ -75,6 +75,8 @@ def _sku_key(service: str, description: str, category: dict) -> str | None:
             return "pd-ssd.capacity"
         if d.startswith("Extreme PD Capacity"):
             return "pd-extreme.capacity"
+        if "Snapshot" in d and not any(x in d for x in ("Egress", "Transfer", "Restore")):
+            return "snapshot.archive.capacity" if "Archive" in d else "snapshot.standard.capacity"
         if "External IP Charge" in d and "Standard VM" in d:
             return "static-ip.attached"
         if d.startswith("Static Ip Charge"):
