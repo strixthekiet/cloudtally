@@ -16,6 +16,9 @@ from cloudtally.models import (
 from cloudtally.pricing.catalog import PricingCatalog
 from cloudtally.providers.gcp.machine_types import parse_machine_type
 
+# VM count at which Cloud NAT stops billing per VM and charges a flat gateway rate
+_NAT_VM_CAP = 32
+
 
 def _component(
     cat: PricingCatalog, region: str, key: str, description: str, quantity: float, unit: str
@@ -109,6 +112,29 @@ class GCPMapper:
         if c is None:
             return make_cost(r, [], UNPRICED, "No SKU for forwarding rule")
         return make_cost(r, [c], ESTIMATED, "Data processing charges excluded (usage-based)")
+
+    def _router(self, r: Resource) -> ResourceCost:
+        gateways = int(r.attrs.get("nat_count", 0) or 0)
+        if not gateways:
+            return make_cost(r, [], EXACT, "Cloud Router with no NAT gateway: no charge")
+        vms = r.attrs.get("nat_vm_count")
+        excluded = "Data processing excluded (usage-based)"
+        if vms is None:
+            key, qty, unit = "nat.gateway.capped", gateways, "gateway"
+            label = f"{gateways:g}x NAT gateway (priced at the {_NAT_VM_CAP}-VM cap)"
+            note = f"Attached VM count not in inventory; {excluded.lower()}"
+        elif int(vms) < _NAT_VM_CAP:
+            key, qty, unit = "nat.gateway.vm", gateways * int(vms), "VM"
+            label = f"{qty:g} VM across {gateways:g} NAT gateway(s)"
+            note = excluded
+        else:
+            key, qty, unit = "nat.gateway.capped", gateways, "gateway"
+            label = f"{gateways:g}x NAT gateway ({_NAT_VM_CAP}+ VMs)"
+            note = excluded
+        c = _component(self.catalog, r.region, key, label, qty, unit)
+        if c is None:
+            return make_cost(r, [], UNPRICED, f"No SKU for Cloud NAT in {r.region}")
+        return make_cost(r, [c], ESTIMATED, note)
 
     def _gke_cluster(self, r: Resource) -> ResourceCost:
         scope = "regional" if r.attrs.get("location_type") == "regional" else "zonal"
@@ -216,6 +242,7 @@ _HANDLERS = {
     "compute.googleapis.com/Disk": GCPMapper._disk,
     "compute.googleapis.com/Address": GCPMapper._address,
     "compute.googleapis.com/ForwardingRule": GCPMapper._forwarding_rule,
+    "compute.googleapis.com/Router": GCPMapper._router,
     "container.googleapis.com/Cluster": GCPMapper._gke_cluster,
     "storage.googleapis.com/Bucket": GCPMapper._bucket,
     "sqladmin.googleapis.com/Instance": GCPMapper._cloudsql,

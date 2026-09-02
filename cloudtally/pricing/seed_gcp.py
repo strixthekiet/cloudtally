@@ -108,6 +108,10 @@ BASE_PRICES: dict[str, tuple[float, str, str]] = {
     "memorystore.standard_large.node": (0.5698, "h", "Memorystore Valkey Standard Large node"),
     "memorystore.highmem_xlarge.node": (0.8581, "h", "Memorystore Valkey Highmem XLarge node"),
     "memorystore.highmem_2xlarge.node": (1.6274, "h", "Memorystore Valkey Highmem 2XLarge node"),
+    # Cloud NAT: per VM-hour until the 32-VM cap, then flat per gateway. Data
+    # processing ($0.045/GiB) is usage-based and priced nowhere.
+    "nat.gateway.vm": (0.0014, "h", "Cloud NAT gateway per VM"),
+    "nat.gateway.capped": (0.044, "h", "Cloud NAT gateway (32+ VMs)"),
     # load balancing
     "lb.forwarding-rule": (0.025, "h", "Forwarding rule"),
 }
@@ -125,10 +129,16 @@ REGION_MULTIPLIERS: dict[str, float] = {
 }
 
 
+# billed at one rate everywhere, so the region multipliers don't apply
+FLAT_RATE_KEYS = {"nat.gateway.vm", "nat.gateway.capped"}
+
+
 def build_seed_entries() -> list[dict]:
     entries: list[dict] = []
     for key, (base, unit, desc) in BASE_PRICES.items():
         for region, mult in REGION_MULTIPLIERS.items():
+            if key in FLAT_RATE_KEYS:
+                mult = 1.0
             entries.append(
                 {
                     "key": key,

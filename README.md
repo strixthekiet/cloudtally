@@ -111,8 +111,8 @@ silently reads as "$0 and fine":
   custom/shared-core shapes), persistent disks, static IPs, GKE cluster
   fees, Cloud SQL vCPU/RAM/storage (zonal and HA), Memorystore Redis.
 - **estimated**: priced with stated assumptions (bucket capacity without
-  ops/egress, forwarding rules without data processing, VMs with premium OS
-  licenses excluded).
+  ops/egress, forwarding rules without data processing, Cloud NAT gateways
+  without data processing, VMs with premium OS licenses excluded).
 - **usage_based**: Cloud Run, Cloud Functions, egress, requests. Real cost
   depends on usage that resource inventory cannot see, so these are flagged
   rather than guessed.
