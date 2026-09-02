@@ -40,6 +40,14 @@ class MachineShape:
     flat_key: str | None = None
 
 
+def _custom_shape(family: str, vcpu: str, ram_mib: str) -> MachineShape | None:
+    """None if a field isn't numeric: e2-custom-medium-4096 names a size, not a vCPU count."""
+    try:
+        return MachineShape(family, float(vcpu), float(ram_mib) / 1024.0)
+    except ValueError:
+        return None
+
+
 def parse_machine_type(machine_type: str) -> MachineShape | None:
     """Parse names like e2-standard-4, n2-custom-4-20480, custom-2-8192,
     e2-micro. Returns None for unrecognized shapes."""
@@ -54,11 +62,11 @@ def parse_machine_type(machine_type: str) -> MachineShape | None:
 
     # legacy N1 custom: custom-<vcpu>-<ramMiB>
     if parts[0] == "custom" and len(parts) == 3:
-        return MachineShape("n1", float(parts[1]), float(parts[2]) / 1024.0)
+        return _custom_shape("n1", parts[1], parts[2])
 
     # <family>-custom-<vcpu>-<ramMiB>[-ext]
     if len(parts) >= 4 and parts[1] == "custom":
-        return MachineShape(parts[0], float(parts[2]), float(parts[3]) / 1024.0)
+        return _custom_shape(parts[0], parts[2], parts[3])
 
     # <family>-<kind>-<vcpu>, optionally with a -lssd or -metal suffix (e.g.
     # c4a-standard-4-lssd, c4a-highmem-96-metal). The suffix doesn't change the CPU/RAM rate,
